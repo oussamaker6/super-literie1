@@ -31,25 +31,59 @@
   </main>
 
   <footer>
-    تواصل: واتساب +213666707587 — إنستغرام: <a href="https://www.instagram.com/super_literie_dz?igsh=MXBsYnN1azNjYmxyOA==" target="_blank">super_literie_dz</a>
+    تواصل: واتساب +213666707587 — إنستغرام: 
+    <a href="https://www.instagram.com/super_literie_dz?igsh=MXBsYnN1azNjYmxyOA==" target="_blank">super_literie_dz</a>
   </footer>
 
-<script>
-  function loadProducts(){
-    const raw = localStorage.getItem('sl_products');
-    if(!raw) return [];
-    try{return JSON.parse(raw);}catch(e){return [];}
+<script type="module">
+  // Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAj8Dp9Rp98knthETTEBMx22KwICPy5x-8",
+    authDomain: "super-literiee.firebaseapp.com",
+    projectId: "super-literiee",
+    storageBucket: "super-literiee.firebasestorage.app",
+    messagingSenderId: "829189351259",
+    appId: "1:829189351259:web:0426969718d46132c19c7e",
+    measurementId: "G-0KBQFEK6KH"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function loadProducts(){
+    const products = [];
+    const snap = await getDocs(collection(db,"products"));
+    snap.forEach(doc=>{
+      products.push({ id: doc.id, ...doc.data() });
+    });
+    return products;
   }
-  function render(){
-    const grid = document.getElementById('productsGrid'); grid.innerHTML='';
-    const arr = loadProducts();
-    if(!arr || arr.length===0){ grid.innerHTML = '<p style="text-align:center;color:#666">لا توجد منتجات حالياً.</p>'; return; }
+
+  async function render(){
+    const grid = document.getElementById('productsGrid'); 
+    grid.innerHTML = '<p style="text-align:center;color:#888">جاري التحميل...</p>';
+    
+    const arr = await loadProducts();
+    grid.innerHTML='';
+    if(!arr || arr.length===0){
+      grid.innerHTML = '<p style="text-align:center;color:#666">لا توجد منتجات حالياً.</p>';
+      return;
+    }
     for(const p of arr){
-      const el = document.createElement('div'); el.className='card';
-      el.innerHTML = `<img src="${p.img}" alt="${p.title}"><h3 title="${p.title}">${p.title}</h3><div class="price">${p.price.toLocaleString()} دج</div><a class="showBtn" href="product.html?id=${p.id}">عرض المنتج</a>`;
+      const el = document.createElement('div'); 
+      el.className='card';
+      el.innerHTML = `
+        <img src="${p.img}" alt="${p.title}">
+        <h3 title="${p.title}">${p.title}</h3>
+        <div class="price">${p.price} دج</div>
+        <a class="showBtn" href="product.html?id=${p.id}">عرض المنتج</a>`;
       grid.appendChild(el);
     }
   }
+
   render();
 </script>
 </body>

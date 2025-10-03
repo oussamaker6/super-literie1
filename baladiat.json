@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>شراء منتج — Super Literie</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#174b74}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:#fff;color:#111}
+  header{display:flex;align-items:center;justify-content:center;padding:14px;border-bottom:1px solid #eee}
+  header img{width:140px}
+  .container{max-width:800px;margin:20px auto;padding:12px}
+  .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 8px 20px rgba(16,24,40,0.05)}
+  .card img{width:100%;max-height:320px;object-fit:cover;border-radius:10px;margin-bottom:14px}
+  h1{color:var(--primary)}
+  label{display:block;margin:12px 0 6px;font-weight:600}
+  select,input,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-family:"Cairo";margin-bottom:10px}
+  button{padding:12px 18px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:700;font-size:16px;cursor:pointer}
+  footer{padding:22px;text-align:center;color:#444;margin-top:28px}
+</style>
+</head>
+<body>
+  <header><img src="assets/logo.png" alt="Super Literie"></header>
+
+  <main class="container">
+    <div class="card" id="productCard">
+      <img id="pImg" src="" alt="">
+      <h1 id="pTitle"></h1>
+      <div style="color:var(--primary);font-weight:700;font-size:20px;margin-bottom:14px" id="pPrice"></div>
+
+      <form id="orderForm">
+        <label>الاسم الكامل</label>
+        <input type="text" id="fullname" required>
+
+        <label>رقم الهاتف</label>
+        <input type="tel" id="phone" required>
+
+        <label>الولاية</label>
+        <select id="wilaya" required>
+          <option value="">اختر الولاية</option>
+        </select>
+
+        <label>البلدية</label>
+        <select id="baladia" required>
+          <option value="">اختر البلدية</option>
+        </select>
+
+        <label>العنوان</label>
+        <textarea id="address" rows="2" required></textarea>
+
+        <button type="submit">تأكيد الطلب</button>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    تواصل: واتساب +213666707587 — إنستغرام: 
+    <a href="https://www.instagram.com/super_literie_dz?igsh=MXBsYnN1azNjYmxyOA==" target="_blank">super_literie_dz</a>
+  </footer>
+
+<script>
+  // تحميل المنتج حسب ID من الرابط
+  function getParam(name){
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+  }
+  function loadProducts(){
+    const raw = localStorage.getItem('sl_products');
+    if(!raw) return [];
+    try{return JSON.parse(raw);}catch(e){return [];}
+  }
+  function renderProduct(){
+    const id = getParam('id');
+    const arr = loadProducts();
+    const p = arr.find(x=>x.id==id);
+    if(!p) return;
+    document.getElementById('pImg').src = p.img;
+    document.getElementById('pTitle').innerText = p.title;
+    document.getElementById('pPrice').innerText = p.price.toLocaleString()+" دج";
+  }
+  renderProduct();
+
+  // تحميل الولايات والبلديات من JSON
+  let dataWilayas = {};
+  fetch("baladiat.json")
+    .then(r=>r.json())
+    .then(data=>{
+      dataWilayas = data;
+      const wilayaSelect = document.getElementById("wilaya");
+      Object.keys(data).forEach(w=>{
+        const opt = document.createElement("option");
+        opt.value = w;
+        opt.textContent = w;
+        wilayaSelect.appendChild(opt);
+      });
+    });
+
+  document.getElementById("wilaya").addEventListener("change", function(){
+    const baladiaSelect = document.getElementById("baladia");
+    baladiaSelect.innerHTML = '<option value="">اختر البلدية</option>';
+    const selected = this.value;
+    if(selected && dataWilayas[selected]){
+      dataWilayas[selected].forEach(b=>{
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        baladiaSelect.appendChild(opt);
+      });
+    }
+  });
+
+  // إرسال الطلب (حاليا مجرد console)
+  document.getElementById("orderForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    const order = {
+      fullname: document.getElementById("fullname").value,
+      phone: document.getElementById("phone").value,
+      wilaya: document.getElementById("wilaya").value,
+      baladia: document.getElementById("baladia").value,
+      address: document.getElementById("address").value,
+      product: document.getElementById("pTitle").innerText
+    };
+    console.log("تم إرسال الطلب:", order);
+    alert("✅ تم إرسال طلبك بنجاح! سنتواصل معك قريبا.");
+    this.reset();
+  });
+</script>
+</body>
+</html>

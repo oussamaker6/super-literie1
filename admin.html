@@ -1,232 +1,73 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>لوحة إدارة — Super Literie</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة الإدارة</title>
 <style>
-  :root{
-    --primary: #174b74;
-    --bg: #f6f8fa;
-    --card: #fff;
-    --muted: #666;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Tahoma, Arial, sans-serif;background:var(--bg);color:#111;direction:rtl;padding:18px}
-  .wrap{max-width:1100px;margin:0 auto}
-  h1{color:var(--primary);margin:0 0 12px}
-  .box{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 8px 20px rgba(16,24,40,0.06);margin-bottom:14px}
-  label{display:block;font-weight:700;margin-bottom:6px}
-  input[type="text"], input[type="number"], input[type="password"], textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px}
-  textarea{min-height:80px}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .col{flex:1;min-width:220px}
-  button{background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
-  .small{padding:8px 10px;font-size:14px}
-  .muted{color:var(--muted);font-size:13px}
-  .prod-list{margin-top:12px}
-  .prod-item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:8px;background:#fff;margin-bottom:8px;box-shadow:0 4px 12px rgba(16,24,40,0.04)}
-  .prod-item img{width:84px;height:64px;object-fit:cover;border-radius:6px;border:1px solid #eee}
-  .actions{margin-left:auto;display:flex;gap:8px}
-  .danger{background:#c03}
-  .hidden{display:none}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-  .tools{display:flex;gap:8px;align-items:center}
-  .file-input{padding:8px;background:#f2f4f6;border-radius:8px;cursor:pointer}
-  .preview-img{width:160px;height:110px;object-fit:cover;border-radius:8px;border:1px solid #eee}
-  .inline{display:inline-block;vertical-align:middle}
-  input[type="color"]{padding:4px;height:40px;width:60px;border-radius:6px;border:1px solid #ddd}
-  .note{font-size:13px;color:#666;margin-top:8px}
-  .search{margin-bottom:12px;padding:10px;border-radius:8px;border:1px solid #ddd;width:100%}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .center{text-align:center}
-  .importFile{display:none}
+body{font-family:Cairo,sans-serif;padding:20px;background:#f5f5f5}
+h1{color:#174b74}
+form{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+input,button{padding:10px;margin:5px 0;width:100%}
+button{background:#174b74;color:#fff;border:0;cursor:pointer}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <h1>لوحة إدارة — Super Literie</h1>
-      <div class="tools">
-        <button id="logoutBtn" class="small hidden">تسجيل الخروج</button>
-        <button id="exportBtn" class="small">تصدير منتجات</button>
-        <label class="file-input small" title="استيراد ملف JSON">استيراد JSON
-          <input id="importFile" class="importFile" type="file" accept="application/json">
-        </label>
-      </div>
-    </div>
+  <h1>لوحة الإدارة</h1>
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="loginBox" class="box">
-      <p class="muted">هذه لوحة الإدارة خاصة — أدخل كلمة السر للمتابعة.</p>
-      <label>كلمة السر</label>
-      <input id="pwd" type="password" placeholder="أدخل كلمة السر">
-      <div style="margin-top:10px">
-        <button id="loginBtn">تسجيل الدخول</button>
-      </div>
-    </div>
+  <form id="settingsForm">
+    <h2>إعدادات الصفحة الرئيسية</h2>
+    <input type="text" id="bgUrl" placeholder="رابط خلفية">
+    <input type="text" id="logoUrl" placeholder="رابط اللوغو">
+    <input type="text" id="titleText" placeholder="عنوان رئيسي">
+    <button type="submit">حفظ الإعدادات</button>
+  </form>
 
-    <!-- المحتوى بعد تسجيل الدخول -->
-    <div id="adminUI" class="hidden">
+  <form id="productForm">
+    <h2>إضافة منتج</h2>
+    <input type="text" id="pTitle" placeholder="اسم المنتج" required>
+    <input type="number" id="pPrice" placeholder="السعر" required>
+    <input type="text" id="pImg" placeholder="رابط الصورة" required>
+    <label><input type="checkbox" id="pFeatured"> منتج مميز</label>
+    <button type="submit">إضافة المنتج</button>
+  </form>
 
-      <!-- إعدادات الموقع -->
-      <div class="box">
-        <h2>إعدادات الموقع</h2>
-        <div class="row">
-          <div class="col">
-            <label>النص الرئيسي (Hero text)</label>
-            <input id="settingHero" type="text" placeholder="مثال: راحة تليق بكم">
-            <label>اللون الأساسي</label>
-            <input id="settingColor" type="color" value="#174b74">
-            <div style="margin-top:8px">
-              <label>خلفية الهيرو (رفع صورة)</label>
-              <input id="heroImageFile" type="file" accept="image/*">
-            </div>
-            <div style="margin-top:8px">
-              <label>رفع الشعار (اللوغو)</label>
-              <input id="logoFile" type="file" accept="image/*">
-            </div>
-            <div class="note">بعد رفع الصور اضغط "حفظ الإعدادات" لتظهر في الصفحة الرئيسية.</div>
-          </div>
-
-          <div class="col center">
-            <div class="muted">معاينة الإعدادات</div>
-            <div style="margin-top:12px">
-              <img id="previewHero" class="preview-img" src="" alt="معاينة الخلفية">
-            </div>
-            <div style="margin-top:10px">
-              <img id="previewLogo" class="preview-img" src="" alt="معاينة اللوغو">
-            </div>
-            <div style="margin-top:10px"><strong id="previewHeroText">-</strong></div>
-          </div>
-        </div>
-        <div style="margin-top:12px">
-          <button id="saveSettingsBtn">حفظ الإعدادات</button>
-        </div>
-      </div>
-
-      <!-- إضافة / تعديل منتج -->
-      <div class="box">
-        <h2>أضف / عدل منتج</h2>
-        <div class="row">
-          <div class="col">
-            <label>عنوان المنتج</label>
-            <input id="inTitle" type="text" placeholder="مثال: مرتبة Ortho Relax">
-            <label>السعر (دج)</label>
-            <input id="inPrice" type="number" placeholder="مثال: 35000">
-            <label>رابط صورة (أو ارفع صورة أدناه)</label>
-            <input id="inImgURL" type="text" placeholder="مثال: images/product1.jpg أو رابط خارجي">
-            <div style="margin-top:8px">
-              <label>رفع صورة من جهازك</label>
-              <input id="inImgFile" type="file" accept="image/*">
-            </div>
-          </div>
-
-          <div class="col">
-            <label>الوصف</label>
-            <textarea id="inDesc" placeholder="وصف قصير"></textarea>
-            <label>الألوان (مفصولة بفواصل)</label>
-            <input id="inColors" type="text" placeholder="مثال: أبيض,رمادي,أزرق">
-            <label>المقاسات (مفصولة بفواصل)</label>
-            <input id="inSizes" type="text" placeholder="مثال: 120x200,160x200">
-            <label><input id="inFeatured" type="checkbox"> إظهار كمنتج مختار في الصفحة الرئيسية</label>
-          </div>
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-          <button id="addBtn">أضف / حدّث المنتج</button>
-          <button id="clearBtn" class="small">تفريغ الحقول</button>
-          <div style="margin-left:auto">
-            <div class="muted">معاينة الصورة المرفوعة</div>
-            <img id="imgPreview" class="preview-img" src="" alt="لا توجد صورة">
-          </div>
-        </div>
-      </div>
-
-      <!-- بحث وإدارة المنتجات -->
-      <div class="box">
-        <h2>منتجاتك</h2>
-        <input id="searchInput" class="search" placeholder="ابحث باسم المنتج...">
-        <div id="productsList" class="prod-list"></div>
-      </div>
-
-      <!-- الطلبات -->
-      <div class="box">
-        <h2>الطلبات (محليًا)</h2>
-        <div class="muted">الطلبات التي تُحفظ محليًا (محفوظة في localStorage) ستظهر هنا. إذا ربطت Google Script، سيتم إرسالها إلى الـ Sheet.</div>
-        <div id="ordersList" style="margin-top:12px"></div>
-        <div style="margin-top:8px">
-          <button id="exportOrdersBtn" class="small">تصدير الطلبات (JSON)</button>
-          <button id="clearOrdersBtn" class="small danger">مسح الطلبات</button>
-        </div>
-      </div>
-
-      <!-- أدوات مساعدة -->
-      <div class="box">
-        <h2>أدوات</h2>
-        <div class="row">
-          <div class="col">
-            <label>تصدير كل المنتجات (JSON)</label>
-            <button id="downloadProductsBtn" class="small">تحميل ملف المنتجات</button>
-          </div>
-          <div class="col">
-            <label>مشاركة رابط لوحة الإدارة (احفظه سريًا)</label>
-            <input id="adminLink" type="text" readonly value="">
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 <script>
-  // كلمة السر
-  const ADMIN_PASSWORD = 'fatouma2005';
-
-  // عناصر
-  const loginBox = document.getElementById('loginBox');
-  const adminUI = document.getElementById('adminUI');
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const pwd = document.getElementById('pwd');
-
-  // إعدادات
-  const settingHero = document.getElementById('settingHero'),
-        settingColor = document.getElementById('settingColor'),
-        heroImageFile = document.getElementById('heroImageFile'),
-        logoFile = document.getElementById('logoFile'),
-        previewHero = document.getElementById('previewHero'),
-        previewLogo = document.getElementById('previewLogo'),
-        previewHeroText = document.getElementById('previewHeroText'),
-        saveSettingsBtn = document.getElementById('saveSettingsBtn');
-
-  // جلسة بسيطة
-  function isAuth(){ return sessionStorage.getItem('sl_admin') === '1'; }
-  function setAuth(v){ sessionStorage.setItem('sl_admin', v ? '1' : '0'); }
-
-  function showAdmin(){
-    loginBox.classList.add('hidden');
-    adminUI.classList.remove('hidden');
-    logoutBtn.classList.remove('hidden');
-  }
-
-  loginBtn.onclick = () => {
-    if(pwd.value === ADMIN_PASSWORD){
-      setAuth(true);
-      showAdmin();
-    } else {
-      alert("كلمة السر غير صحيحة");
-    }
+  const firebaseConfig = {
+    apiKey: "AIzaSyAj8Dp9Rp98knthETTEBMx22KwICPy5x-8",
+    authDomain: "super-literiee.firebaseapp.com",
+    projectId: "super-literiee",
+    storageBucket: "super-literiee.firebasestorage.app",
+    messagingSenderId: "829189351259",
+    appId: "1:829189351259:web:0426969718d46132c19c7e",
+    measurementId: "G-0KBQFEK6KH"
   };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  logoutBtn.onclick = () => {
-    setAuth(false);
-    location.reload();
-  };
+  // حفظ الإعدادات
+  document.getElementById("settingsForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    db.collection("settings").doc("hero").set({
+      bg: document.getElementById("bgUrl").value,
+      logo: document.getElementById("logoUrl").value,
+      title: document.getElementById("titleText").value
+    }).then(()=>alert("تم حفظ الإعدادات ✅"));
+  });
 
-  if(isAuth()) showAdmin();
+  // إضافة منتج
+  document.getElementById("productForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    db.collection("products").add({
+      title: document.getElementById("pTitle").value,
+      price: parseInt(document.getElementById("pPrice").value),
+      img: document.getElementById("pImg").value,
+      featured: document.getElementById("pFeatured").checked
+    }).then(()=>alert("تمت إضافة المنتج ✅"));
+  });
 </script>
 </body>
 </html>
-
-  
