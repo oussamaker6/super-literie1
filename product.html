@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>منتج — Super Literie</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#174b74}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:#fff;color:#111}
+  .wrap{max-width:1100px;margin:18px auto;padding:12px}
+  .back{margin-bottom:12px;display:inline-block;color:#666;text-decoration:none}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .gallery{background:#f9f9f9;padding:12px;border-radius:12px}
+  .mainImg{width:100%;height:420px;object-fit:cover;border-radius:10px}
+  .thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .thumbs img{width:80px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;opacity:0.9}
+  .details h1{margin:6px 0 6px;font-size:22px}
+  .price{color:var(--primary);font-weight:800;font-size:20px;margin-bottom:8px}
+  .desc{color:#555;margin-bottom:10px}
+  form{background:#fff;padding:12px;border-radius:10px;box-shadow:0 10px 30px rgba(16,24,40,0.04)}
+  label{display:block;font-weight:700;margin-top:8px}
+  input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-top:6px}
+  .btn{background:var(--primary);color:#fff;border:0;padding:12px 16px;border-radius:10px;margin-top:12px;cursor:pointer;font-weight:700}
+  .sticky-buy{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;background:var(--primary);color:#fff;padding:12px 18px;border-radius:999px;z-index:999;box-shadow:0 10px 26px rgba(23,75,116,0.22)}
+  .thank{text-align:center;padding:24px}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr; } .mainImg{height:320px} .thumbs img{width:70px;height:50px} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="products.html">← العودة للمنتجات</a>
+
+    <div class="layout">
+      <div class="gallery">
+        <img id="mainImg" class="mainImg" src="assets/placeholder1.jpg" alt="صورة المنتج">
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+
+      <div class="details">
+        <h1 id="title">اسم المنتج</h1>
+        <div class="price" id="price">0 دج</div>
+        <div class="desc" id="desc"></div>
+
+        <!-- النموذج -->
+        <form id="orderForm">
+          <label>الاسم الكامل *</label>
+          <input id="fullname" required placeholder="الاسم الكامل">
+
+          <label>رقم الهاتف *</label>
+          <input id="phone" required placeholder="مثال: 0666xxxxxx">
+
+          <label>الولاية *</label>
+          <select id="wilaya" required></select>
+
+          <label>البلدية *</label>
+          <select id="baladia" required></select>
+
+          <div id="sizeColorWrap">
+            <!-- تُضاف حقول اللون/المقاس ديناميكيًا -->
+          </div>
+
+          <label>ملاحظة (اختياري)</label>
+          <textarea id="note" placeholder="ملاحظة للطلب"></textarea>
+
+          <button type="button" id="submitBtn" class="btn">تأكيد الطلب</button>
+        </form>
+
+        <!-- رسالة شكر تظهر بعد الإرسال -->
+        <div id="thank" class="hidden" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <a id="stickyBuy" class="sticky-buy" href="#orderForm">طلب الآن</a>
+
+<script>
+  // ====== إعدادات (ضع رابط Google Apps Script هنا بعد إنشاءه) ======
+  const GOOGLE_SCRIPT_URL = ''; // ضع رابط Web App هنا (فارغ الآن => يحفظ في localStorage فقط)
+  const WHATSAPP_NUMBER = '213666707587'; // بدون +
+  // ================================================================
+
+  // قائمة ولايات صغيرة كمثال — وسّع القائمة حسب الحاجة
+  const wilayas = {
+    "الجزائر": ["الدار البيضاء","باب الزوار","هران العين"],
+    "وهران": ["وهران المدينة","السانية"],
+    "قسنطينة": ["قسنطينة المدينة","بن عاشور"]
+  };
+
+  // قراءة id المنتج من query
+  function q(name){ const params = new URLSearchParams(location.search); return params.get(name); }
+  const productId = Number(q('id') || 0);
+
+  function loadProducts(){ try{ return JSON.parse(localStorage.getItem('sl_products')||'[]'); }catch(e){return[];} }
+  const products = loadProducts();
+  const product = products.find(p=>p.id===productId) || products[0] || null;
+
+  // رندر المحتوى
+  document.getElementById('title').textContent = product ? product.title : 'منتج غير موجود';
+  document.getElementById('price').textContent = product ? product.price.toLocaleString()+' دج' : '';
+  document.getElementById('desc').textContent = product && product.desc ? product.desc : '';
+
+  // gallery
+  const mainImg = document.getElementById('mainImg');
+  const thumbs = document.getElementById('thumbs');
+  if(product && product.img){
+    // product.img قد يكون رابط واحد أو مصفوفة
+    const imgs = Array.isArray(product.img)?product.img:[product.img];
+    mainImg.src = imgs[0];
+    imgs.forEach(src=>{
+      const im = document.createElement('img'); im.src=src; im.alt='صورة'; im.addEventListener('click', ()=> mainImg.src = src);
+      thumbs.appendChild(im);
+    });
+  }
+
+  // ملأ ولايات وبلديات
+  const wilayaEl = document.getElementById('wilaya'), baladiaEl = document.getElementById('baladia');
+  function fillWilayas(){
+    wilayaEl.innerHTML = '<option value="">اختر الولاية</option>';
+    Object.keys(wilayas).forEach(w=> {
+      const o = document.createElement('option'); o.value=w; o.textContent=w; wilayaEl.appendChild(o);
+    });
+  }
+  function fillBaladias(w){
+    baladiaEl.innerHTML = '<option value="">اختر البلدية</option>';
+    if(!w || !wilayas[w]) return;
+    wilayas[w].forEach(b=> { const o=document.createElement('option'); o.value=b; o.textContent=b; baladiaEl.appendChild(o); });
+  }
+  fillWilayas();
+  wilayaEl.addEventListener('change', ()=> fillBaladias(wilayaEl.value));
+
+  // حقول اللون والمقاس تظهر فقط لو موجودة
+  const sizeColorWrap = document.getElementById('sizeColorWrap');
+  function renderSizeColor(){
+    sizeColorWrap.innerHTML='';
+    if(product && Array.isArray(product.sizes) && product.sizes.length){
+      const lab = document.createElement('label'); lab.textContent='المقاس *'; sizeColorWrap.appendChild(lab);
+      const sel = document.createElement('select'); sel.id='size'; sel.required=true;
+      sel.innerHTML = '<option value="">اختر المقاس</option>' + product.sizes.map(s=>`<option value="${s}">${s}</option>`).join('');
+      sizeColorWrap.appendChild(sel);
+    }
+    if(product && Array.isArray(product.colors) && product.colors.length){
+      const lab2 = document.createElement('label'); lab2.textContent='اللون *'; sizeColorWrap.appendChild(lab2);
+      const sel2 = document.createElement('select'); sel2.id='color'; sel2.required=true;
+      sel2.innerHTML = '<option value="">اختر اللون</option>' + product.colors.map(c=>`<option value="${c}">${c}</option>`).join('');
+      sizeColorWrap.appendChild(sel2);
+    }
+  }
+  renderSizeColor();
+
+  // إرسال الطلب إلى Google Sheets أو حفظ محليًا إن لم يوجد رابط
+  async function submitOrder(){
+    // تأكد من الحقول المطلوبة
+    const fullname = document.getElementById('fullname').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const wil = wilayaEl.value;
+    const bal = baladiaEl.value;
+    const sizeEl = document.getElementById('size'), colorEl = document.getElementById('color');
+    const size = sizeEl ? sizeEl.value : '';
+    const color = colorEl ? colorEl.value : '';
+    const note = document.getElementById('note').value.trim();
+
+    if(!fullname || !phone || !wil || !bal) return alert('الرجاء ملء جميع الحقول المطلوبة');
+    if(sizeEl && !size) return alert('اختر المقاس');
+    if(colorEl && !color) return alert('اختر اللون');
+
+    const payload = {
+      timestamp: new Date().toISOString(),
+      product_id: product.id,
+      product_name: product.title,
+      price: product.price,
+      fullname, phone, wilaya: wil, baladia: bal, size, color, note
+    };
+
+    // إذا محدد رابط Google Script => نرسله
+    if(GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.length>5){
+      try{
+        const res = await fetch(GOOGLE_SCRIPT_URL, {method:'POST',body: JSON.stringify(payload),headers:{'Content-Type':'application/json'}});
+        if(!res.ok) throw Error('failed');
+      }catch(e){
+        console.warn('خطأ في إرسال Google Script — سيتم حفظ الطلب محلياً', e);
+        saveOrderLocal(payload);
+      }
+    } else {
+      // لا رابط => نحفظ محلياً
+      saveOrderLocal(payload);
+    }
+
+    // عرض رسالة شكر
+    showThank();
+  }
+
+  function saveOrderLocal(obj){
+    const raw = localStorage.getItem('sl_orders') || '[]';
+    const arr = JSON.parse(raw);
+    arr.push(obj);
+    localStorage.setItem('sl_orders', JSON.stringify(arr));
+  }
+
+  function showThank(){
+    document.getElementById('orderForm').style.display='none';
+    const t = document.getElementById('thank'); t.style.display='block'; t.innerHTML = `<div class="thank"><h2>✅ شكراً على طلبك!</h2><p>سنتواصل معك في أقرب وقت لتأكيد الطلب.</p><p style="margin-top:14px"><a class="btn" href="https://wa.me/${WHATSAPP_NUMBER}?text=مرحبًا%20أريد%20الاستفسار%20عن%20الطلب" target="_blank">تواصل معنا عبر واتساب</a></p></div>`;
+    document.getElementById('stickyBuy').style.display='none';
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', submitOrder);
+
+  // سلوك الزر المثبت: إذا المستخدم في الجزء العلوي -> ينقله للنموذج، وإذا كان النموذج ظاهراً ويمكن الإرسال فسيركز الحقول.
+  document.getElementById('stickyBuy').addEventListener('click', (e)=>{
+    e.preventDefault();
+    const form = document.getElementById('orderForm');
+    form.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+
+</script>
+</body>
+</html>

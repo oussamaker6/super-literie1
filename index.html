@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Super Literie — راحة تليق بكم</title>
+<link rel="icon" href="assets/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#174b74; /* أزرق اللوغو */
+    --bg:#ffffff;
+    --muted:#f6f7f8;
+    --text:#111;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  .hero{
+    min-height:85vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    flex-direction:column;
+    padding:24px;
+    background:
+      linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.28)),
+      url('https://images.unsplash.com/photo-1582582494700-4b6ea6c9b54f?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+    color:#fff;
+  }
+  .logo img{width:170px;max-width:45vw}
+  h1{font-size:44px;margin:16px 0 8px;letter-spacing:1px;font-weight:700}
+  p.lead{font-size:18px;margin:0 0 20px;opacity:0.95}
+  .btn-cta{background:var(--primary);color:#fff;border:0;padding:14px 28px;border-radius:12px;font-size:17px;cursor:pointer;box-shadow:0 8px 24px rgba(23,75,116,0.25)}
+  .features{background:rgba(255,255,255,0.95);padding:14px;border-radius:12px;display:flex;gap:18px;margin-top:24px;align-items:center;justify-content:center;color:var(--primary)}
+  .feature{display:flex;flex-direction:column;align-items:center;padding:6px 10px;font-weight:600}
+  .container{max-width:1100px;margin:0 auto;padding:26px}
+  /* featured products preview */
+  .preview{margin-top:28px;background:transparent;padding:18px;border-radius:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;align-items:start}
+  .card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 6px 14px rgba(16,24,40,0.06);text-align:center;color:#111}
+  .card img{width:100%;height:150px;object-fit:cover;border-radius:8px}
+  .card h3{margin:10px 0 6px;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .price{color:var(--primary);font-weight:700;margin-top:6px}
+  footer{padding:22px;text-align:center;color:#444}
+  .sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:999;background:var(--primary);color:#fff;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(23,75,116,0.22);text-decoration:none;font-weight:700}
+  @media (max-width:600px){
+    h1{font-size:32px}
+    .card img{height:130px}
+    .logo img{width:140px}
+  }
+</style>
+</head>
+<body>
+
+  <main>
+    <section class="hero" aria-label="مرحبًا">
+      <div class="logo"><img src="assets/logo.png" alt="Super Literie"></div>
+      <h1 id="heroTitle">راحة تليق بكم</h1>
+      <p class="lead">أفرشة ومراتب فاخرة لتجربة نوم مثالية — جودة مُختارة بعناية</p>
+      <button class="btn-cta" id="goProducts">اكتشف منتجاتنا</button>
+
+      <div class="features" aria-hidden="true" style="margin-top:28px;">
+        <div class="feature">⭐<div style="font-size:13px">جودة عالية</div></div>
+        <div class="feature">🛡️<div style="font-size:13px">ضمان</div></div>
+        <div class="feature">🚚<div style="font-size:13px">توصيل سريع</div></div>
+      </div>
+    </section>
+
+    <section class="container preview" aria-label="منتجات مختارة">
+      <h2 style="text-align:center;color:var(--primary)">منتجات مختارة</h2>
+      <div class="grid" id="previewGrid"></div>
+    </section>
+
+    <footer>
+      <div>تواصل معنا: <strong>واتساب: +213666707587</strong> — إنستغرام: <a href="https://www.instagram.com/super_literie_dz?igsh=MXBsYnN1azNjYmxyOA==" target="_blank" rel="noopener">super_literie_dz</a></div>
+      <div style="margin-top:8px;color:#888">حقوق النشر © <span id="year"></span> Super Literie</div>
+    </footer>
+  </main>
+
+  <a class="sticky-cta" id="stickyBtn" href="products.html">تصفح المنتجات</a>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  document.getElementById('goProducts').addEventListener('click', ()=> location.href='products.html');
+
+  // منتجات افتراضية أولية أو تحميل من localStorage
+  const defaultProducts = [
+    {id:1,title:"مرتبة Ortho Relax",price:35000,img:"https://images.unsplash.com/photo-1582582494700-4b6ea6c9b54f?q=80&w=800&auto=format&fit=crop",desc:"مرتبة بدعم قطني ممتاز",colors:["أبيض","رمادي"],sizes:["120x200","160x200"],featured:true},
+    {id:2,title:"وسادة Memory Soft",price:2500,img:"https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800&auto=format&fit=crop",desc:"وسادة ميموري فوم",colors:[],sizes:[],featured:true},
+    {id:3,title:"غطاء سرير فاخر",price:6000,img:"https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop",desc:"غطاء ناعم",colors:["بحري"],sizes:["200x220"],featured:false}
+  ];
+
+  function loadProducts(){
+    const raw = localStorage.getItem('sl_products');
+    if(!raw){ localStorage.setItem('sl_products', JSON.stringify(defaultProducts)); return defaultProducts; }
+    try{ return JSON.parse(raw); }catch(e){ localStorage.setItem('sl_products', JSON.stringify(defaultProducts)); return defaultProducts; }
+  }
+
+  function renderPreview(){
+    const grid = document.getElementById('previewGrid'); grid.innerHTML='';
+    const prods = loadProducts().filter(p=>p.featured).slice(0,4);
+    if(prods.length===0){ grid.innerHTML = '<p style="text-align:center;color:#666">لم تُحدّد منتجات مختارة بعد.</p>'; return; }
+    for(const p of prods){
+      const card = document.createElement('div'); card.className='card';
+      card.innerHTML = `<img src="${p.img}" alt="${p.title}"><h3 title="${p.title}">${p.title}</h3><div class="price">${p.price.toLocaleString()} دج</div><div style="margin-top:8px"><a href="product.html?id=${p.id}" style="text-decoration:none;color:var(--primary);font-weight:700">عرض المنتج</a></div>`;
+      grid.appendChild(card);
+    }
+  }
+
+  renderPreview();
+</script>
+</body>
+</html>

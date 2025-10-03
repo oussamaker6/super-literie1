@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>منتجاتنا — Super Literie</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#174b74}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:#fff;color:#111}
+  header{display:flex;align-items:center;justify-content:center;padding:14px;border-bottom:1px solid #eee}
+  header img{width:140px}
+  .container{max-width:1200px;margin:20px auto;padding:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+  .card{background:#fff;border-radius:12px;padding:10px;box-shadow:0 8px 20px rgba(16,24,40,0.05);text-align:center}
+  .card img{width:100%;height:200px;object-fit:cover;border-radius:10px}
+  .card h3{margin:10px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .price{color:var(--primary);font-weight:700}
+  .showBtn{margin-top:8px;display:inline-block;padding:8px 12px;border-radius:8px;background:var(--primary);color:#fff;text-decoration:none}
+  footer{padding:22px;text-align:center;color:#444;margin-top:28px}
+  @media (max-width:520px){ .card img{height:150px} }
+</style>
+</head>
+<body>
+  <header><img src="assets/logo.png" alt="Super Literie"></header>
+
+  <main class="container">
+    <h1 style="text-align:center;color:var(--primary)">منتجاتنا</h1>
+    <div class="grid" id="productsGrid"></div>
+  </main>
+
+  <footer>
+    تواصل: واتساب +213666707587 — إنستغرام: <a href="https://www.instagram.com/super_literie_dz?igsh=MXBsYnN1azNjYmxyOA==" target="_blank">super_literie_dz</a>
+  </footer>
+
+<script>
+  function loadProducts(){
+    const raw = localStorage.getItem('sl_products');
+    if(!raw) return [];
+    try{return JSON.parse(raw);}catch(e){return [];}
+  }
+  function render(){
+    const grid = document.getElementById('productsGrid'); grid.innerHTML='';
+    const arr = loadProducts();
+    if(!arr || arr.length===0){ grid.innerHTML = '<p style="text-align:center;color:#666">لا توجد منتجات حالياً.</p>'; return; }
+    for(const p of arr){
+      const el = document.createElement('div'); el.className='card';
+      el.innerHTML = `<img src="${p.img}" alt="${p.title}"><h3 title="${p.title}">${p.title}</h3><div class="price">${p.price.toLocaleString()} دج</div><a class="showBtn" href="product.html?id=${p.id}">عرض المنتج</a>`;
+      grid.appendChild(el);
+    }
+  }
+  render();
+</script>
+</body>
+</html>
