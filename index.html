@@ -2,87 +2,151 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Super Literie — راحة تليق بكم</title>
-<link rel="icon" href="assets/logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الإدارة — Super Literie</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --primary:#174b74; --bg:#ffffff; --text:#111; }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);}
-  .hero{min-height:85vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;background-size:cover;background-position:center;}
-  .hero-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.35);}
-  .hero-content{position:relative;z-index:2;}
-  .logo img{width:170px;max-width:45vw}
-  h1{font-size:44px;margin:16px 0 8px;font-weight:700}
-  .btn-cta{background:var(--primary);color:#fff;padding:14px 28px;border:0;border-radius:12px;cursor:pointer}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:28px}
-  .card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 6px 14px rgba(16,24,40,0.06);text-align:center}
-  .card img{width:100%;height:150px;object-fit:cover;border-radius:8px}
-  .price{color:var(--primary);font-weight:700;margin-top:6px}
-  footer{padding:22px;text-align:center;color:#444}
+  body{margin:0;font-family:"Cairo",sans-serif;background:#f5f5f5;color:#111}
+  .login,.panel{max-width:800px;margin:40px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,0.1)}
+  h1,h2{color:#174b74}
+  input,textarea,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px;font-family:"Cairo"}
+  button{background:#174b74;color:#fff;padding:10px 16px;border:0;border-radius:8px;cursor:pointer;font-weight:700}
+  .product{padding:10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+  .hidden{display:none}
+  .row{display:flex;gap:10px}
+  .row input{flex:1}
 </style>
 </head>
 <body>
-  <section class="hero" id="hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <div class="logo"><img id="siteLogo" src="assets/logo.png" alt="Logo"></div>
-      <h1 id="heroTitle">راحة تليق بكم</h1>
-      <button class="btn-cta" onclick="location.href='products.html'">اكتشف منتجاتنا</button>
-    </div>
-  </section>
 
-  <main class="container">
-    <h2 style="text-align:center;color:var(--primary)">منتجات مختارة</h2>
-    <div class="grid" id="productsGrid"></div>
-  </main>
+<div class="login" id="loginBox">
+  <h1>تسجيل الدخول</h1>
+  <input type="password" id="adminPass" placeholder="كلمة السر">
+  <button onclick="checkPass()">دخول</button>
+</div>
 
-  <footer>
-    <div>حقوق النشر ©️ <span id="year"></span> Super Literie</div>
-  </footer>
+<div class="panel hidden" id="adminPanel">
+  <h1>لوحة التحكم</h1>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-<script>
+  <h2>إعدادات المتجر</h2>
+  <label>خلفية الصفحة الرئيسية</label>
+  <input type="file" id="bgFile">
+  <label>شعار المتجر (لوغو)</label>
+  <input type="file" id="logoFile">
+  <button onclick="saveSettings()">💾 حفظ الإعدادات</button>
+
+  <h2>إضافة/تعديل منتج</h2>
+  <input id="pTitle" placeholder="اسم المنتج">
+  <input id="pPrice" placeholder="السعر">
+  <textarea id="pDesc" placeholder="الوصف"></textarea>
+  <label>صور المنتج</label>
+  <input type="file" id="pImgs" multiple>
+  
+  <label>المقاسات (اختياري - افصل بينها بفاصلة)</label>
+  <input id="pSizes" placeholder="مثال: S,M,L,XL">
+  
+  <label>الألوان (اختياري - افصل بينها بفاصلة)</label>
+  <input id="pColors" placeholder="مثال: أحمر,أزرق,أخضر">
+  
+  <button onclick="addProduct()">➕ إضافة المنتج</button>
+
+  <h2>قائمة المنتجات</h2>
+  <div id="productList"></div>
+</div>
+
+<script type="module">
+  // ===== Firebase =====
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
+
   const firebaseConfig = {
-    apiKey: "AIzaSyAj8Dp9Rp98knthETTEBMx22KwICPy5x-8",
-    authDomain: "super-literiee.firebaseapp.com",
-    projectId: "super-literiee",
-    storageBucket: "super-literiee.firebasestorage.app",
-    messagingSenderId: "829189351259",
-    appId: "1:829189351259:web:0426969718d46132c19c7e",
-    measurementId: "G-0KBQFEK6KH"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
 
-  document.getElementById('year').textContent = new Date().getFullYear();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
 
-  // جلب الإعدادات
-  db.collection("settings").doc("hero").get().then(doc=>{
-    if(doc.exists){
-      const data = doc.data();
-      if(data.bg) document.getElementById("hero").style.backgroundImage = `url(${data.bg})`;
-      if(data.logo) document.getElementById("siteLogo").src = data.logo;
-      if(data.title) document.getElementById("heroTitle").textContent = data.title;
+  // ===== كلمة السر البسيطة =====
+  const ADMIN_PASSWORD = "123456"; // 🔑 غيرها بما تريد
+
+  window.checkPass = function(){
+    const val = document.getElementById("adminPass").value;
+    if(val === ADMIN_PASSWORD){
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("adminPanel").classList.remove("hidden");
+      loadProducts();
+    } else {
+      alert("❌ كلمة السر خاطئة");
     }
-  });
+  }
 
-  // جلب المنتجات
-  db.collection("products").where("featured","==",true).get().then(snapshot=>{
-    const grid=document.getElementById("productsGrid");
-    snapshot.forEach(doc=>{
-      const p=doc.data();
-      grid.innerHTML += `
-        <div class="card">
-          <img src="${p.img}" alt="${p.title}">
-          <h3>${p.title}</h3>
-          <div class="price">${p.price} دج</div>
-        </div>`;
+  // ===== رفع ملف (خلفية/لوغو/صور) =====
+  async function uploadFile(file, folder){
+    const fileRef = ref(storage, folder + "/" + Date.now() + "_" + file.name);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+  }
+
+  // ===== حفظ الإعدادات =====
+  window.saveSettings = async function(){
+    let bgUrl="", logoUrl="";
+    const bgFile = document.getElementById("bgFile").files[0];
+    const logoFile = document.getElementById("logoFile").files[0];
+    if(bgFile) bgUrl = await uploadFile(bgFile,"settings");
+    if(logoFile) logoUrl = await uploadFile(logoFile,"settings");
+
+    await setDoc(doc(db,"settings","main"), {background:bgUrl,logo:logoUrl});
+    alert("✅ تم حفظ الإعدادات");
+  }
+
+  // ===== إضافة منتج =====
+  window.addProduct = async function(){
+    const title = document.getElementById("pTitle").value;
+    const price = Number(document.getElementById("pPrice").value);
+    const desc = document.getElementById("pDesc").value;
+    const sizes = document.getElementById("pSizes").value.split(",").map(s=>s.trim()).filter(Boolean);
+    const colors = document.getElementById("pColors").value.split(",").map(c=>c.trim()).filter(Boolean);
+
+    let imgs=[];
+    const files = document.getElementById("pImgs").files;
+    for(let f of files){
+      const url = await uploadFile(f,"products");
+      imgs.push(url);
+    }
+
+    await addDoc(collection(db,"products"), {title,price,desc,img:imgs,sizes,colors});
+    alert("✅ تم إضافة المنتج");
+    loadProducts();
+  }
+
+  // ===== تحميل المنتجات =====
+  async function loadProducts(){
+    const snap = await getDocs(collection(db,"products"));
+    let html="";
+    snap.forEach(d=>{
+      const p = d.data();
+      html+=`<div class="product">
+        <div>${p.title} - ${p.price} دج</div>
+        <button onclick="deleteProduct('${d.id}')">🗑️ حذف</button>
+      </div>`;
     });
-  });
+    document.getElementById("productList").innerHTML = html;
+  }
+
+  // ===== حذف منتج =====
+  window.deleteProduct = async function(id){
+    await deleteDoc(doc(db,"products",id));
+    alert("🗑️ تم الحذف");
+    loadProducts();
+  }
 </script>
+
 </body>
 </html>
