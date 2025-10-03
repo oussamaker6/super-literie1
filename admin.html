@@ -58,23 +58,26 @@
   // ===== Firebase =====
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
 
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAj8Dp9Rp98knthETTEBMx22KwICPy5x-8",
+    authDomain: "super-literiee.firebaseapp.com",
+    projectId: "super-literiee",
+    storageBucket: "super-literiee.appspot.com",
+    messagingSenderId: "829189351259",
+    appId: "1:829189351259:web:0426969718d46132c19c7e",
+    measurementId: "G-0KBQFEK6KH"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
 
-  // ===== كلمة السر البسيطة =====
-  const ADMIN_PASSWORD = "123456"; // 🔑 غيرها بما تريد
+  // ===== Cloudinary Config =====
+  const CLOUD_NAME = "dcilkalts";  
+  const UPLOAD_PRESET = "unsingned_preset";  
+
+  // ===== كلمة السر =====
+  const ADMIN_PASSWORD = "123456"; // بدّلها بكلمة السر لي تحبها
 
   window.checkPass = function(){
     const val = document.getElementById("adminPass").value;
@@ -87,11 +90,19 @@
     }
   }
 
-  // ===== رفع ملف (خلفية/لوغو/صور) =====
-  async function uploadFile(file, folder){
-    const fileRef = ref(storage, folder + "/" + Date.now() + "_" + file.name);
-    await uploadBytes(fileRef, file);
-    return await getDownloadURL(fileRef);
+  // ===== رفع ملف لصورة على Cloudinary =====
+  async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    return data.secure_url;
   }
 
   // ===== حفظ الإعدادات =====
@@ -99,8 +110,8 @@
     let bgUrl="", logoUrl="";
     const bgFile = document.getElementById("bgFile").files[0];
     const logoFile = document.getElementById("logoFile").files[0];
-    if(bgFile) bgUrl = await uploadFile(bgFile,"settings");
-    if(logoFile) logoUrl = await uploadFile(logoFile,"settings");
+    if(bgFile) bgUrl = await uploadFile(bgFile);
+    if(logoFile) logoUrl = await uploadFile(logoFile);
 
     await setDoc(doc(db,"settings","main"), {background:bgUrl,logo:logoUrl});
     alert("✅ تم حفظ الإعدادات");
@@ -117,7 +128,7 @@
     let imgs=[];
     const files = document.getElementById("pImgs").files;
     for(let f of files){
-      const url = await uploadFile(f,"products");
+      const url = await uploadFile(f);
       imgs.push(url);
     }
 
