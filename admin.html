@@ -17,7 +17,7 @@
   h1{color:var(--primary);margin:0 0 12px}
   .box{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 8px 20px rgba(16,24,40,0.06);margin-bottom:14px}
   label{display:block;font-weight:700;margin-bottom:6px}
-  input[type="text"], input[type="number"], textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px}
+  input[type="text"], input[type="number"], input[type="password"], textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px}
   textarea{min-height:80px}
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .col{flex:1;min-width:220px}
@@ -64,7 +64,6 @@
       <div style="margin-top:10px">
         <button id="loginBtn">تسجيل الدخول</button>
       </div>
-      <p class="muted" style="margin-top:12px">ملاحظة: كلمة السر الحالية محفوظة في هذا الملف كـ <code>fatouma2005</code>.</p>
     </div>
 
     <!-- المحتوى بعد تسجيل الدخول -->
@@ -83,13 +82,20 @@
               <label>خلفية الهيرو (رفع صورة)</label>
               <input id="heroImageFile" type="file" accept="image/*">
             </div>
-            <div class="note">بعد رفع الصورة اضغط "حفظ الإعدادات" لتظهر في الصفحة الرئيسية.</div>
+            <div style="margin-top:8px">
+              <label>رفع الشعار (اللوغو)</label>
+              <input id="logoFile" type="file" accept="image/*">
+            </div>
+            <div class="note">بعد رفع الصور اضغط "حفظ الإعدادات" لتظهر في الصفحة الرئيسية.</div>
           </div>
 
           <div class="col center">
             <div class="muted">معاينة الإعدادات</div>
             <div style="margin-top:12px">
               <img id="previewHero" class="preview-img" src="" alt="معاينة الخلفية">
+            </div>
+            <div style="margin-top:10px">
+              <img id="previewLogo" class="preview-img" src="" alt="معاينة اللوغو">
             </div>
             <div style="margin-top:10px"><strong id="previewHeroText">-</strong></div>
           </div>
@@ -174,7 +180,7 @@
   </div>
 
 <script>
-  // كلمة السر كما طلبت
+  // كلمة السر
   const ADMIN_PASSWORD = 'fatouma2005';
 
   // عناصر
@@ -184,280 +190,43 @@
   const logoutBtn = document.getElementById('logoutBtn');
   const pwd = document.getElementById('pwd');
 
-  // منتجات وإعدادات
-  const inTitle = document.getElementById('inTitle'), inPrice = document.getElementById('inPrice'),
-        inImgURL = document.getElementById('inImgURL'), inImgFile = document.getElementById('inImgFile'),
-        inDesc = document.getElementById('inDesc'), inColors = document.getElementById('inColors'),
-        inSizes = document.getElementById('inSizes'), inFeatured = document.getElementById('inFeatured'),
-        addBtn = document.getElementById('addBtn'), clearBtn = document.getElementById('clearBtn'),
-        imgPreview = document.getElementById('imgPreview'), productsList = document.getElementById('productsList'),
-        searchInput = document.getElementById('searchInput');
-
-  const settingHero = document.getElementById('settingHero'), settingColor = document.getElementById('settingColor'),
-        heroImageFile = document.getElementById('heroImageFile'), previewHero = document.getElementById('previewHero'),
-        previewHeroText = document.getElementById('previewHeroText'), saveSettingsBtn = document.getElementById('saveSettingsBtn');
-
-  const ordersList = document.getElementById('ordersList'), exportOrdersBtn = document.getElementById('exportOrdersBtn'), clearOrdersBtn = document.getElementById('clearOrdersBtn');
-
-  const importFile = document.getElementById('importFile'), exportBtn = document.getElementById('exportBtn'), downloadProductsBtn = document.getElementById('downloadProductsBtn'), adminLink = document.getElementById('adminLink');
+  // إعدادات
+  const settingHero = document.getElementById('settingHero'),
+        settingColor = document.getElementById('settingColor'),
+        heroImageFile = document.getElementById('heroImageFile'),
+        logoFile = document.getElementById('logoFile'),
+        previewHero = document.getElementById('previewHero'),
+        previewLogo = document.getElementById('previewLogo'),
+        previewHeroText = document.getElementById('previewHeroText'),
+        saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
   // جلسة بسيطة
   function isAuth(){ return sessionStorage.getItem('sl_admin') === '1'; }
   function setAuth(v){ sessionStorage.setItem('sl_admin', v ? '1' : '0'); }
 
-  if(isAuth()) showAdmin();
-
-  loginBtn.addEventListener('click', ()=>{
-    if(pwd.value === ADMIN_PASSWORD){ setAuth(true); showAdmin(); } else alert('كلمة سر خاطئة');
-  });
-
-  logoutBtn.addEventListener('click', ()=>{ setAuth(false); location.reload(); });
-
   function showAdmin(){
-    loginBox.classList.add('hidden'); adminUI.classList.remove('hidden'); logoutBtn.classList.remove('hidden');
-    loadSettingsToUI(); renderProducts(); renderOrders(); adminLink.value = location.href;
+    loginBox.classList.add('hidden');
+    adminUI.classList.remove('hidden');
+    logoutBtn.classList.remove('hidden');
   }
 
-  // ---------- localStorage helpers ----------
-  function loadProducts(){ try{ return JSON.parse(localStorage.getItem('sl_products')||'[]'); }catch(e){ return []; } }
-  function saveProducts(arr){ localStorage.setItem('sl_products', JSON.stringify(arr)); }
-  function loadSettings(){ try{ return JSON.parse(localStorage.getItem('sl_settings')||'{}'); }catch(e){return{};} }
-  function saveSettings(obj){ localStorage.setItem('sl_settings', JSON.stringify(obj)); }
-  function loadOrders(){ try{ return JSON.parse(localStorage.getItem('sl_orders')||'[]'); }catch(e){return[];} }
-  function saveOrders(arr){ localStorage.setItem('sl_orders', JSON.stringify(arr)); }
-
-  function nextId(){
-    const arr = loadProducts(); return arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1;
-  }
-
-  // ---------- إعدادات ----------
-  function loadSettingsToUI(){
-    const s = loadSettings();
-    settingHero.value = s.heroText || 'راحة تليق بكم';
-    settingColor.value = s.primaryColor || '#174b74';
-    document.documentElement.style.setProperty('--primary', settingColor.value);
-    previewHero.src = s.heroImage || '';
-    previewHeroText.textContent = s.heroText || '';
-    previewHeroText.style.color = settingColor.value;
-  }
-
-  heroImageFile.addEventListener('change', e=>{
-    const f = e.target.files[0]; if(!f) return;
-    const reader = new FileReader();
-    reader.onload = ()=> { previewHero.src = reader.result; };
-    reader.readAsDataURL(f);
-  });
-
-  saveSettingsBtn.addEventListener('click', ()=>{
-    const s = loadSettings();
-    s.heroText = settingHero.value || 'راحة تليق بكم';
-    s.primaryColor = settingColor.value || '#174b74';
-    s.heroImage = previewHero.src || '';
-    saveSettings(s);
-    document.documentElement.style.setProperty('--primary', s.primaryColor);
-    alert('تم حفظ الإعدادات');
-  });
-
-  // ---------- إضافة/تعديل منتج ----------
-  addBtn.addEventListener('click', async ()=>{
-    const title = inTitle.value.trim(); const price = Number(inPrice.value);
-    if(!title || !price) return alert('أدخل اسم وسعر المنتج');
-    let img = inImgURL.value.trim();
-
-    // إذا رفعت ملف، نقرأه كـ dataURL
-    if(inImgFile.files && inImgFile.files[0]){
-      const file = inImgFile.files[0];
-      img = await fileToDataURL(file);
-    } else if(!img){
-      img = ''; // يمكن وضع placeholder لاحقًا
-    }
-
-    const colors = inColors.value.split(',').map(s=>s.trim()).filter(Boolean);
-    const sizes = inSizes.value.split(',').map(s=>s.trim()).filter(Boolean);
-    const featured = inFeatured.checked;
-
-    const arr = loadProducts();
-    const editId = Number(addBtn.dataset.editId || 0);
-    if(editId){
-      const idx = arr.findIndex(x=>x.id===editId);
-      if(idx===-1) return alert('خطأ في التعديل');
-      arr[idx] = {...arr[idx], title, price, img, desc: inDesc.value.trim(), colors, sizes, featured};
-      delete addBtn.dataset.editId; addBtn.textContent = 'أضف / حدّث المنتج';
+  loginBtn.onclick = () => {
+    if(pwd.value === ADMIN_PASSWORD){
+      setAuth(true);
+      showAdmin();
     } else {
-      const prod = { id: nextId(), title, price, img, desc: inDesc.value.trim(), colors, sizes, featured };
-      arr.push(prod);
+      alert("كلمة السر غير صحيحة");
     }
-    saveProducts(arr); renderProducts(); clearForm(); alert('تم حفظ المنتج');
-  });
+  };
 
-  clearBtn.addEventListener('click', clearForm);
-  function clearForm(){
-    inTitle.value=''; inPrice.value=''; inImgURL.value=''; inImgFile.value=''; inDesc.value=''; inColors.value=''; inSizes.value=''; inFeatured.checked=false; imgPreview.src=''; delete addBtn.dataset.editId; addBtn.textContent='أضف / حدّث المنتج';
-  }
+  logoutBtn.onclick = () => {
+    setAuth(false);
+    location.reload();
+  };
 
-  inImgFile.addEventListener('change', (e)=>{
-    const f = e.target.files[0]; if(!f) return; fileToDataURL(f).then(d=>{
-      imgPreview.src = d;
-    });
-  });
-
-  function fileToDataURL(file){ return new Promise((res, rej)=>{
-    const reader = new FileReader(); reader.onload = ()=> res(reader.result); reader.onerror = rej; reader.readAsDataURL(file);
-  }); }
-
-  // ---------- رندر المنتجات ----------
-  function renderProducts(filter=''){
-    const arr = loadProducts().slice().reverse(); // الأحدث أولاً
-    productsList.innerHTML = '';
-    const q = (filter||'').toLowerCase();
-    const shown = arr.filter(p => !q || (p.title && p.title.toLowerCase().includes(q)));
-    if(shown.length===0){ productsList.innerHTML = '<p class="muted">لا توجد منتجات.</p>'; return; }
-    for(const p of shown){
-      const div = document.createElement('div'); div.className='prod-item';
-      div.innerHTML = `<img src="${p.img||''}" alt="${p.title}" onerror="this.src=''">
-        <div style="min-width:160px;text-align:right">
-          <div style="font-weight:700">${p.title}</div>
-          <div class="muted">${p.price.toLocaleString()} دج</div>
-          <div class="muted" style="font-size:13px;margin-top:6px">${(p.desc||'')}</div>
-          <div style="margin-top:6px;font-size:13px">${p.colors && p.colors.length ? 'ألوان: '+p.colors.join(', ') : ''}</div>
-          <div style="font-size:13px">${p.sizes && p.sizes.length ? 'مقاسات: '+p.sizes.join(', ') : ''}</div>
-        </div>
-        <div class="actions">
-          <button onclick='editProduct(${p.id})' class="small">تعديل</button>
-          <button onclick='deleteProduct(${p.id})' class="small danger">حذف</button>
-        </div>`;
-      productsList.appendChild(div);
-    }
-  }
-
-  window.editProduct = function(id){
-    const arr = loadProducts(); const p = arr.find(x=>x.id===id);
-    if(!p) return alert('منتج غير موجود');
-    inTitle.value = p.title; inPrice.value = p.price; inImgURL.value = p.img || ''; inDesc.value = p.desc || ''; inColors.value = (p.colors||[]).join(','); inSizes.value = (p.sizes||[]).join(','); inFeatured.checked = !!p.featured;
-    imgPreview.src = p.img || '';
-    addBtn.dataset.editId = id; addBtn.textContent = 'حفظ التعديلات';
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
-
-  window.deleteProduct = function(id){
-    if(!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
-    let arr = loadProducts(); arr = arr.filter(x=>x.id!==id); saveProducts(arr); renderProducts(); alert('تم الحذف');
-  }
-
-  searchInput.addEventListener('input', ()=> renderProducts(searchInput.value.trim()));
-
-  // ---------- إدارة الطلبات ----------
-  function renderOrders(){
-    const arr = loadOrders().slice().reverse();
-    ordersList.innerHTML = '';
-    if(arr.length===0){ ordersList.innerHTML = '<p class="muted">لا توجد طلبات حالياً.</p>'; return; }
-    for(const o of arr){
-      const d = document.createElement('div'); d.className='prod-item';
-      d.innerHTML = `<div style="min-width:160px;text-align:right">
-        <div style="font-weight:700">${o.product_name || 'طلب'}</div>
-        <div class="muted">الاسم: ${o.fullname||'-'} — الهاتف: ${o.phone||'-'}</div>
-        <div class="muted" style="font-size:13px">الولاية: ${o.wilaya||'-'} — البلدية: ${o.baladia||'-'}</div>
-        <div class="muted" style="font-size:13px">المقاس: ${o.size||'-'} — اللون: ${o.color||'-'}</div>
-        <div style="margin-top:6px">${o.note?('ملاحظة: '+o.note):''}</div>
-        <div class="muted" style="font-size:12px;margin-top:6px">${o.timestamp||''}</div>
-      </div>
-      <div class="actions">
-        <button onclick='copyOrder(${JSON.stringify(JSON.stringify(o)).replace(/'/g,"\\'")})' class="small">نسخ</button>
-      </div>`;
-      ordersList.appendChild(d);
-    }
-  }
-
-  function copyOrder(serialized){
-    try{
-      const obj = JSON.parse(serialized);
-      const text = Object.entries(obj).map(([k,v])=>`${k}: ${v}`).join('\n');
-      navigator.clipboard.writeText(text);
-      alert('نسخ إلى الحافظة');
-    }catch(e){ alert('خطأ'); }
-  }
-
-  exportOrdersBtn.addEventListener('click', ()=>{
-    const data = localStorage.getItem('sl_orders') || '[]';
-    const blob = new Blob([data],{type:'application/json'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'orders.json'; a.click(); URL.revokeObjectURL(url);
-  });
-
-  clearOrdersBtn.addEventListener('click', ()=>{
-    if(!confirm('مسح كل الطلبات محليًا؟')) return; localStorage.removeItem('sl_orders'); renderOrders(); alert('تم المسح');
-  });
-
-  // ---------- استيراد/تصدير منتجات ----------
-  exportBtn.addEventListener('click', ()=>{
-    const data = localStorage.getItem('sl_products') || '[]';
-    const blob = new Blob([data],{type:'application/json'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'products.json'; a.click(); URL.revokeObjectURL(url);
-  });
-
-  importFile.addEventListener('change', (e)=>{
-    const f = e.target.files[0]; if(!f) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const arr = JSON.parse(reader.result);
-        if(!Array.isArray(arr)) throw Error('not array');
-        saveProducts(arr); renderProducts(); alert('تم استيراد المنتجات بنجاح');
-      }catch(err){ alert('ملف غير صالح'); }
-    };
-    reader.readAsText(f);
-  });
-
-  // تنزيل نسخة من المنتجات
-  downloadProductsBtn.addEventListener('click', ()=>{
-    const data = localStorage.getItem('sl_products') || '[]';
-    const blob = new Blob([data],{type:'application/json'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'products.json'; a.click(); URL.revokeObjectURL(url);
-  });
-
-  // تصدير JSON عام
-  document.getElementById('exportBtn').addEventListener('click', ()=>{
-    const all = { settings: loadSettings(), products: loadProducts() };
-    const blob = new Blob([JSON.stringify(all)],{type:'application/json'}); const url = URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='superliterie_data.json'; a.click(); URL.revokeObjectURL(url);
-  });
-
-  // إدخال استيراد عام (يمكنك تعديل لمن تريد)
-  document.getElementById('importFile').addEventListener('change', (e)=>{
-    const f = e.target.files[0]; if(!f) return;
-    const r = new FileReader();
-    r.onload = ()=>{
-      try{
-        const obj = JSON.parse(r.result);
-        if(obj.products) saveProducts(obj.products);
-        if(obj.settings) saveSettings(obj.settings);
-        renderProducts(); loadSettingsToUI(); alert('تم استيراد البيانات');
-      }catch(err){ alert('ملف غير صالح'); }
-    };
-    r.readAsText(f);
-  });
-
-  // حفظ الإعدادات التلقائي عند تحميل الصفحة لأول مرة
-  (function ensureDefaults(){
-    if(!localStorage.getItem('sl_settings')) saveSettings({ heroText: 'راحة تليق بكم', primaryColor: '#174b74', heroImage: '' });
-    if(!localStorage.getItem('sl_products')) {
-      const sample = [
-        {id:1,title:'مرتبة Ortho Relax',price:35000,img:'',desc:'مرتبة بدعم قطني ممتاز',colors:['أبيض','رمادي'],sizes:['120x200','160x200'],featured:true},
-        {id:2,title:'وسادة Memory Soft',price:2500,img:'',desc:'وسادة ميموري فوم',colors:[],sizes:[],featured:true}
-      ];
-      saveProducts(sample);
-    }
-  })();
-
-  // حفظ/تحميل صورة الخلفية أو صور المنتجات كـ data URL — تنبيه: يملأ localStorage إذا رفعت صور كبيرة
-  // مساعدة: تابع التوثيق إذا رغبت في رفع الصور للسيرفر لاحقًا
-
-  // عند فتح الواجهة، اعرض المنتجات والإعدادات
-  // renderProducts() will be invoked in showAdmin()
-
-  // تفعيل تسجيل الخروج الظاهر
-  if(isAuth()) { logoutBtn.classList.remove('hidden'); }
-
-  // نهاية السكربت
+  if(isAuth()) showAdmin();
 </script>
 </body>
 </html>
+
+  
